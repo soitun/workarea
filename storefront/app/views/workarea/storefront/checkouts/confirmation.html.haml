@@ -27,7 +27,8 @@
         = label_tag :password, nil, class: 'property__name' do
           %span.property__requirement.property__requirement--required= t('workarea.storefront.forms.required')
           %span.property__text= t('workarea.storefront.users.password')
-        .value= password_field_tag :password, nil, class: 'text-box', required: true, minlength: minimum_password_length, autocomplete: 'off'
+        .value{ data: { controller: "reveal_password" } }
+          = password_field_tag :password, nil, class: 'text-box', required: true, minlength: minimum_password_length, autocomplete: 'off', data: { target: "reveal_password.input" }
       .button-property
         .value= check_box_tag :email_signup, true, params[:email_signup]
         = label_tag :email_signup, nil, class: 'button-property__name' do

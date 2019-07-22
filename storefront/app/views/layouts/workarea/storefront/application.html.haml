@@ -30,6 +30,7 @@
 
     = append_partials('storefront.document_head')
     = javascript_include_tag Workarea.config.asset_manifests.storefront_javascript_head
+    = javascript_pack_tag 'storefront'
 
     = render_schema_org(web_site_schema)
     = render_schema_org(web_page_schema)
@@ -163,5 +164,6 @@
           %p.visually-hidden= link_to t('workarea.storefront.layouts.top_of_page'), '#top'
 
     = javascript_include_tag Workarea.config.asset_manifests.storefront_javascript
+    = javascript_include_tag "translations", skip_pipeline: true
     = yield :javascript
     = append_partials('storefront.javascript')

@@ -1,4 +1,7 @@
-.message{ html_options }
+.message{ html_options.merge(data: { controller: 'flash', target: 'flash.message' }) }
   %p.message__type
     %span.message__icon= type.titleize
-  %p.message__text= message
+  %p.message__text
+    = message
+    = button_tag type: 'button', class: 'message__dismiss-button', data: { action: 'click->flash#close' } do
+      %span.message__dismiss-icon Close

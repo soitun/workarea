@@ -38,8 +38,8 @@
           .property
             = label_tag 'create_account_password', nil, class: 'property__name' do
               %span.property__text= t('workarea.storefront.users.password')
-            .value
-              = password_field_tag :password, nil, id: 'create_account_password', class: 'text-box', required: true, minlength: minimum_password_length, autocomplete: 'off'
+            .value{ data: { controller: 'reveal_password' } }
+              = password_field_tag :password, nil, id: 'create_account_password', class: 'text-box', required: true, minlength: minimum_password_length, autocomplete: 'off', data: { target: 'reveal_password.input' }
               - if @user.errors[:password].present?
                 %span.value__error= @user.errors[:password].first
           .button-property

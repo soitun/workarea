@@ -15,19 +15,19 @@
 
   %body{ data: { turbolinks: 'false' } }
 
-    .admin-toolbar
+    .admin-toolbar{ data: { controller: 'admin_toolbar' } }
 
       .page-container
 
-        #header.header
+        #header.header{ data: { target: 'admin_toolbar.header' } }
           = inline_svg('workarea/admin/logo.svg', class: 'header__logo', title: 'Workarea')
 
-          = link_to inline_svg('workarea/admin/icons/menu.svg', class: 'header__menu-icon', title: t('workarea.admin.toolbar.open_primary_menu')), '#primary_nav', class: 'header__menu-button header__menu-button--open'
-          = button_tag inline_svg('workarea/admin/icons/close.svg', class: 'header__menu-icon', title: t('workarea.admin.toolbar.close_primary_menu')), class: 'header__menu-button header__menu-button--close', type: 'button', id: 'takeover_close_button'
+          = link_to inline_svg('workarea/admin/icons/menu.svg', class: 'header__menu-icon', title: t('workarea.admin.toolbar.open_primary_menu')), '#primary_nav', class: 'header__menu-button header__menu-button--open', data: { action: 'click->admin_toolbar#expand' }
+          = button_tag inline_svg('workarea/admin/icons/close.svg', class: 'header__menu-icon', title: t('workarea.admin.toolbar.close_primary_menu')), class: 'header__menu-button header__menu-button--close', type: 'button', id: 'takeover_close_button', data: { action: 'click->admin_toolbar#collapse' }
 
           .header__contents
 
-            = form_tag search_path, method: 'get', class: 'header__search-form', role: 'search' do
+            = form_tag search_path, method: 'get', data: { action: 'click->admin_toolbar#expand' }, class: 'header__search-form', role: 'search' do
               .search-form.search-form--major
                 = search_field_tag :q, nil, placeholder: t('workarea.admin.toolbar.search_placeholder'), title: t('workarea.admin.toolbar.search_title'), class: 'search-form__input', data: { categorized_autocomplete_field: '' }, id: 'admin_search', aria: { label: t('workarea.admin.toolbar.search_title') }
                 = submit_tag t('workarea.admin.toolbar.search'), class: 'search-form__button', value: 'search_admin'

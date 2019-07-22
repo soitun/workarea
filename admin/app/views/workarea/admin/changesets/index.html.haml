@@ -32,7 +32,7 @@
                         = link_to polymorphic_path(changeset.root, release_id: changeset.release), class: 'text-button' do
                           = t('workarea.admin.actions.edit')
                           = inline_svg('workarea/admin/icons/edit.svg', class: 'text-button__icon')
-                      = form_tag release_changeset_path(@release, changeset), method: :delete, class: 'grid__cell', data: { deletion_form: { message: t('workarea.admin.changesets.delete_confirmation') } } do
+                      = form_tag release_changeset_path(@release, changeset), method: :delete, class: 'grid__cell', data: { controller: 'deletion', deletion: { message: t('workarea.admin.changesets.delete_confirmation') } } do
                         = button_tag value: 'delete_changeset', class: 'text-button text-button--destroy' do
                           = t('workarea.admin.actions.delete')
                           = inline_svg('workarea/admin/icons/delete.svg', class: 'text-button__icon')

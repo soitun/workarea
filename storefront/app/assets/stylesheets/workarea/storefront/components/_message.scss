@@ -96,7 +96,7 @@ $message-border-radius:  5px !default;
     }
 
     .message__dismiss-action {
-        display: none;
+        // display: none;
 
         .page-messages & { /* [1] */
             display: block;

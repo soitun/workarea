@@ -32,8 +32,8 @@ module Workarea
       def add_javascript(js)
         return unless js.present?
 
-        content_for(:javascript) do
-          content_tag(:script, js.html_safe)
+          content_for(:javascript) do
+            content_tag(:script, js.html_safe)
         end
       end
 
@@ -68,7 +68,6 @@ module Workarea
         html_options = message if message.is_a?(Hash)
         message = capture(&block) if block_given?
 
-        html_options[:class] = "message--#{type.systemize}"
         render('workarea/storefront/shared/message', type: type.systemize, message: message, html_options: html_options)
       end
 
