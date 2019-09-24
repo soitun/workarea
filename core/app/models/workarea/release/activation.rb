@@ -29,17 +29,23 @@ module Workarea
 
         # active_by_segment will override activeness, so setting that will need
         # to be part of activation.
-        changes = { active_by_segment: { I18n.locale.to_s => @_active_by_segment } }
+        changes = if @_active_by_segment.blank?
+          {}
+        else
+          { active_by_segment: { I18n.locale.to_s => @_active_by_segment } }
+        end
 
         set.changeset = if Workarea.config.localized_active_fields
           changes.merge('active' => { I18n.locale.to_s => true })
         else
           changes.merge('active' => true)
         end
+
+        original = @_active_by_segment.blank? ? {} : { 'active_by_segment' => {} }
         set.original = if Workarea.config.localized_active_fields
-          { 'active' => { I18n.locale.to_s => false }, 'active_by_segment' => {} }
+          original.merge('active' => { I18n.locale.to_s => false })
         else
-          { 'active' => false, 'active_by_segment' => {} }
+          original.merge('active' => false)
         end
 
         set.save!

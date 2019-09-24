@@ -12,17 +12,15 @@ module Workarea
         content.blocks.create!(
           type: 'html',
           data: { 'html' => '<p>Foo</p>' },
-          active_by_segment: { segment_one.id => false }
+          active_segment_ids: [segment_one.id]
         )
         content.blocks.create!(
           type: 'html',
           data: { 'html' => '<p>Bar</p>' },
-          active_by_segment: { segment_two.id => false }
+          active_segment_ids: [segment_two.id]
         )
 
         visit storefront.root_path
-        assert_content('Foo')
-        assert_content('Bar')
 
         within_frame find('.admin-toolbar') do
           click_link t('workarea.admin.toolbar.select_segments')
@@ -31,8 +29,8 @@ module Workarea
         click_button 'set_overrides'
 
         assert_current_path(storefront.root_path)
-        assert_no_content('Foo')
-        assert_content('Bar')
+        assert_content('Foo')
+        assert_no_content('Bar')
         within_frame find('.admin-toolbar') do
           assert_content('Test One')
           click_link 'Test One', match: :first
@@ -43,8 +41,8 @@ module Workarea
         click_button 'set_overrides'
 
         assert_current_path(storefront.root_path)
-        assert_content('Foo')
-        assert_no_content('Bar')
+        assert_no_content('Foo')
+        assert_content('Bar')
         within_frame find('.admin-toolbar') do
           refute_content('Test One')
           assert_content('Test Two')

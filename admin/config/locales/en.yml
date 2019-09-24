@@ -694,6 +694,7 @@ en:
           display: Display
           exclusive_segments: Only show for these segments
           hide_for: Hide for
+          segments: Segments
         index:
           dashboard_link: Store dashboard
           help_link: Create your own pages
