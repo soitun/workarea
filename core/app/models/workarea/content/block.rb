@@ -55,6 +55,17 @@ module Workarea
 
       delegate :icon, :fieldsets, to: :type
 
+      def active?
+        default = active # don't use super because Segmentable overrides that
+        return false unless default
+
+        if active_by_segment.blank? || Segment.current.blank?
+          default
+        else
+          Segment.current.any? { |s| active_by_segment[s.id.to_s] }
+        end
+      end
+
       # Tries to find a unique name for this block relative to the other blocks
       # in the content area.
       #

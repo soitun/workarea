@@ -41,6 +41,33 @@ module Workarea
       Segment.with_current(segment_one) { refute(model.active?) }
       Segment.with_current(segment_two) { assert(model.active?) }
       Segment.with_current(segment_one, segment_two) { refute(model.active?) }
+
+      model.update!(active: false)
+      refute(model.active?)
+
+      model.update!(active_by_segment: { segment_one.id => false })
+      refute(model.active?)
+      Segment.with_current(segment_one) { refute(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
+      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
+
+      model.update!(active_by_segment: { segment_two.id => false })
+      refute(model.active?)
+      Segment.with_current(segment_one) { refute(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
+      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
+
+      model.update!(active_by_segment: { segment_one.id => true, segment_two.id => false })
+      refute(model.active?)
+      Segment.with_current(segment_one) { assert(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
+      Segment.with_current(segment_one, segment_two) { assert(model.active?) }
+
+      model.update!(active_by_segment: { segment_one.id => false, segment_two.id => true })
+      refute(model.active?)
+      Segment.with_current(segment_one) { refute(model.active?) }
+      Segment.with_current(segment_two) { assert(model.active?) }
+      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
     end
 
     def test_active_by_segment_typecasting
@@ -85,6 +112,31 @@ module Workarea
       assert_equal({}, model.active_by_segment)
       assert_equal([], model.active_segment_ids)
       assert_equal([], model.inactive_segment_ids)
+    end
+
+    def test_segments_and_activate_with
+      segment = create_segment
+      release = create_release
+
+      model = Foo.create!(activate_with: release.id, active_by_segment: { segment.id => false })
+      refute(model.reload.active?)
+      assert_equal({}, model.active_by_segment)
+
+      Segment.with_current(segment) do
+        refute(model.reload.active?)
+        assert_equal({}, model.active_by_segment)
+
+        release.as_current do
+          refute(model.reload.active?)
+          assert_equal({ segment.id.to_s => false }, model.active_by_segment)
+        end
+      end
+
+      release.publish!
+      assert(model.reload.active?)
+      assert_equal({ segment.id.to_s => false }, model.active_by_segment)
+
+      Segment.with_current(segment) { refute(model.reload.active?) }
     end
   end
 end

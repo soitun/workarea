@@ -117,34 +117,30 @@ module Workarea
         content.blocks.create!(
           type: 'html',
           data: { 'html' => '<p>Foo</p>' },
-          active_by_segment: { segment_one.id => false }
+          active_segment_ids: [segment_one.id]
         )
         content.blocks.create!(
           type: 'html',
           data: { 'html' => '<p>Bar</p>' },
-          active_by_segment: { segment_two.id => false }
+          active_segment_ids: [segment_two.id]
         )
 
-        get storefront.root_path
-        assert_includes(response.body, '<p>Foo</p>')
-        assert_includes(response.body, '<p>Bar</p>')
-
         with_current_segments(segment_one) do
-          get storefront.root_path
-          refute_includes(response.body, '<p>Foo</p>')
-          assert_includes(response.body, '<p>Bar</p>')
-        end
-
-        with_current_segments(segment_two) do
           get storefront.root_path
           assert_includes(response.body, '<p>Foo</p>')
           refute_includes(response.body, '<p>Bar</p>')
         end
 
-        with_current_segments(segment_one, segment_two) do
+        with_current_segments(segment_two) do
           get storefront.root_path
           refute_includes(response.body, '<p>Foo</p>')
-          refute_includes(response.body, '<p>Bar</p>')
+          assert_includes(response.body, '<p>Bar</p>')
+        end
+
+        with_current_segments(segment_one, segment_two) do
+          get storefront.root_path
+          assert_includes(response.body, '<p>Foo</p>')
+          assert_includes(response.body, '<p>Bar</p>')
         end
       end
 
