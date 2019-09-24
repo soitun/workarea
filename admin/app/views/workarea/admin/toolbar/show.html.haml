@@ -46,10 +46,11 @@
 
             .header__action
               = link_to segment_override_path(return_to: params[:return_to]), class: 'header__action-link' do
+                = inline_svg('workarea/admin/icons/user.svg', title: t('workarea.admin.toolbar.managing_changes_for'), class: 'release-select__icon')
+
                 - if override_segments.blank?
                   = link_to t('workarea.admin.toolbar.select_segments'), segment_override_path(return_to: params[:return_to]), class: 'header__action-link'
                 - else
-                  = inline_svg('workarea/admin/icons/edit.svg', title: t('workarea.admin.toolbar.managing_changes_for'), class: 'release-select__icon')
                   %span<
                     = override_segments.take(2).map(&:name).join(', ')
                     - if override_segments.size > 2

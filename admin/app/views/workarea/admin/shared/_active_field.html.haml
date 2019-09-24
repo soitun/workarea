@@ -5,7 +5,9 @@
     = t('workarea.admin.shared.active_field.by_segment', count: model.active_by_segment.size)
 
 #active-by-segment.tooltip-content
-  %h3= t('workarea.admin.shared.active_field.active_by_segment')
+  %h3
+    = inline_svg('workarea/admin/icons/user.svg', class: 'svg-icon svg-icon--small svg-icon--blue')
+    = t('workarea.admin.shared.active_field.active_by_segment')
   %p= t('workarea.admin.shared.active_field.description_html', segments_path: segments_path)
 
   .property
