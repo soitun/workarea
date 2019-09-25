@@ -38,6 +38,15 @@ module Workarea
         }
       end
 
+      def breadcrumb_url_for(breadcrumb)
+        return storefront_url_for(breadcrumb) if breadcrumb.is_a?(Navigation::Taxon)
+
+        route = "#{breadcrumb.class.name.demodulize.systemize}_url"
+        id = breadcrumb.respond_to?(:slug) ? breadcrumb.slug : breadcrumb.id
+
+        send(route, id: id, host: Workarea.config.host)
+      end
+
       def product_schema(product, related_products: nil)
         schema = {
           "@context": "http://schema.org",

@@ -102,7 +102,7 @@
             .breadcrumbs{ role: 'navigation' }
               = yield :breadcrumbs
           - elsif @breadcrumbs.present?
-            = render_schema_org(breadcrumb_list_schema(@breadcrumbs.map { |t| [t.name, storefront_url_for(t)] }))
+            = render_schema_org(breadcrumb_list_schema(@breadcrumbs.map { |t| [t.name, breadcrumb_url_for(t)] }))
 
             .breadcrumbs{ role: 'navigation' }
               %p.breadcrumbs__node-group
