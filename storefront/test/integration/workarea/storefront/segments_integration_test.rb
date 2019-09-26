@@ -49,10 +49,10 @@ module Workarea
       end
 
       def test_products_active_by_segment
-        segment_one = create_segment(position: 0)
-        segment_two = create_segment(position: 1)
-        product_one = create_product(active: true, active_by_segment: { segment_one.id => false })
-        product_two = create_product(active: true, active_by_segment: { segment_two.id => false })
+        segment_one = create_segment
+        segment_two = create_segment
+        product_one = create_product(active: true, active_segment_ids: [segment_two.id])
+        product_two = create_product(active: true, active_segment_ids: [segment_one.id])
 
         get storefront.product_path(product_one)
         assert(response.ok?)
@@ -93,25 +93,21 @@ module Workarea
         end
 
         with_current_segments(segment_one, segment_two) do
-          assert_raise InvalidDisplay do
-            get storefront.product_path(product_one)
-            assert(response.not_found?)
-          end
+          get storefront.product_path(product_one)
+          assert(response.ok?)
 
-          assert_raise InvalidDisplay do
-            get storefront.product_path(product_two)
-            assert(response.not_found?)
-          end
+          get storefront.product_path(product_two)
+          assert(response.ok?)
 
           get storefront.search_path(q: '*')
-          refute_includes(response.body, product_one.id)
-          refute_includes(response.body, product_two.id)
+          assert_includes(response.body, product_one.id)
+          assert_includes(response.body, product_two.id)
         end
       end
 
       def test_content_active_by_segment
-        segment_one = create_segment(position: 0)
-        segment_two = create_segment(position: 1)
+        segment_one = create_segment
+        segment_two = create_segment
 
         content = Content.for('home_page')
         content.blocks.create!(
@@ -147,12 +143,13 @@ module Workarea
       def test_admins_ignore_segments
         create_life_cycle_segments
         first_time_visitor = Segment::FirstTimeVisitor.instance
-        product = create_product(active: true, active_by_segment: { first_time_visitor.id => false })
+        returning_visitor = Segment::ReturningVisitor.instance
+        product = create_product(active: true, active_segment_ids: [returning_visitor.id])
         content = Content.for('home_page')
         content.blocks.create!(
           type: 'html',
           data: { 'html' => '<p>Foo</p>' },
-          active_by_segment: { first_time_visitor.id => false }
+          active_segment_ids: [returning_visitor.id]
         )
 
         set_current_user(create_user(admin: true))

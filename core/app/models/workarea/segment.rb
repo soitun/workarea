@@ -2,7 +2,6 @@ module Workarea
   class Segment
     include ApplicationDocument
     include Commentable
-    include Ordering
     include Mongoid::Document::Taggable
 
     field :name, type: String
@@ -14,11 +13,11 @@ module Workarea
     end
 
     def self.current
-      Thread.current[:current_segments] || Collection.new
+      Thread.current[:current_segments] || []
     end
 
     def self.current=(*segments)
-      Thread.current[:current_segments] = Collection.new(*segments)
+      Thread.current[:current_segments] = Array.wrap(segments).flatten
     end
 
     def self.with_current(*segments)

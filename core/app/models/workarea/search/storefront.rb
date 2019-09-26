@@ -37,14 +37,17 @@ module Workarea
         model.try(:release_id).presence || 'live'
       end
 
-      # Whether the product is active for a given segment. Storing
-      # active per-segment allows accurate display of products in by segment
-      # on the storefront.
+      # Whether the product is active. Stored this way for upgrade support to
+      # v3.5 without requiring reindexing.
       #
       # return [Hash]
       #
       def active
-        model.active_by_segment.merge(now: model.active?)
+        { now: model.active? }
+      end
+
+      def active_segment_ids
+        model.try(:active_segment_ids)
       end
 
       def facets
@@ -82,6 +85,7 @@ module Workarea
             type: type,
             slug: slug,
             active: active,
+            active_segment_ids: active_segment_ids,
             release_id: release_id,
             changeset_release_ids: Array.wrap(model.try(:changesets)).map(&:release_id),
             suggestion_content: suggestion_content,

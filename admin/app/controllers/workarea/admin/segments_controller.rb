@@ -30,14 +30,6 @@ module Workarea
       def insights
       end
 
-      def move
-        position_data = params.fetch(:positions, {})
-        position_data.each { |id, p| Segment.find(id).update!(position: p) }
-
-        flash[:success] = t('workarea.admin.segments.flash_messages.moved')
-        head :ok
-      end
-
       def destroy
         head :unprocessable_entity && return if @segment.life_cycle?
 

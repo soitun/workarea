@@ -13,25 +13,6 @@ module Workarea
         assert_equal('foo bar', Segment.first.name)
       end
 
-      def test_moving
-        segment_one = create_segment(position: 1)
-        segment_two = create_segment(position: 2)
-        segment_three = create_segment(position: 3)
-
-        post admin.move_segments_path,
-          params: {
-            positions: {
-              segment_three.id => 0,
-              segment_two.id => 1,
-              segment_one.id => 2
-            }
-          }
-
-        assert_equal(0, segment_three.reload.position)
-        assert_equal(1, segment_two.reload.position)
-        assert_equal(2, segment_one.reload.position)
-      end
-
       def test_destroy
         segment = create_segment(name: 'Custom Segment')
         delete admin.segment_path(segment)

@@ -40,52 +40,20 @@ module Workarea
       end
 
       def active_for_segments_clause
-        if Segment.current.blank?
-          { term: { 'active.now' => true } }
-        else
-          {
+        result = { bool: { must: [{ term: { 'active.now' => true } }] } }
+
+        if Segment.current.present?
+          result[:bool][:must] << {
             bool: {
               should: [
-                {
-                  bool: {
-                    must: [
-                      { term: { 'active.now' => true } },
-                      {
-                        bool: {
-                          must_not: Segment.current.map do |segment|
-                            { exists: { field: "active.#{segment.id}" } }
-                          end
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  bool: {
-                    should: Segment.current.reduce([]) do |clauses, segment|
-                      prioritized_before = Segment.current.prioritized_before(segment)
-
-                      clauses << {
-                        bool: {
-                          must: [
-                            { term: { "active.#{segment.id}" => true } },
-                            {
-                              bool: {
-                                must_not: prioritized_before.map do |segment|
-                                  { term: { "active.#{segment.id}" => false } }
-                                end
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    end
-                  }
-                }
+                { bool: { must_not: { exists: { field: 'active_segment_ids' } } } },
+                { terms: { 'active_segment_ids' => Segment.current.map(&:id) } }
               ]
             }
           }
         end
+
+        result
       end
 
       def preview_current_release_clause

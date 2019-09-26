@@ -20,14 +20,6 @@ module Workarea
       def segments
         @segments ||= Segment.all
       end
-
-      def active_by_segment_options
-        {
-          '-' => nil,
-          t('workarea.admin.fields.active') => 'true',
-          t('workarea.admin.fields.inactive') => 'false'
-        }
-      end
     end
   end
 end

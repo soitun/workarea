@@ -46,36 +46,34 @@ module Workarea
         assert(page.has_content?(t('workarea.admin.segment_rules.index.no_edit')))
       end
 
-      def test_prioritizing_segments
-        create_segment(name: 'Foo', position: 0)
-        create_segment(name: 'Bar', position: 1)
-        create_segment(name: 'Baz', position: 2)
-        visit admin.segments_path
-
-        assert(page.has_ordered_text?('Foo', 'Bar', 'Baz'))
-        assert(page.has_selector?('.ui-sortable'))
-      end
-
       def test_managing_active_by_segment
         one = create_segment(name: 'Foo')
         two = create_segment(name: 'Bar')
 
-        category = create_category(active_by_segment: {})
+        category = create_category(active: false, active_segment_ids: [])
         visit admin.edit_catalog_category_path(category)
+
+        within '.active-field' do
+          refute_content(t('workarea.admin.shared.active_field.by_segment', count: 0))
+          find('.toggle-button__label--negative').click
+          assert_content(t('workarea.admin.shared.active_field.by_segment', count: 0))
+        end
 
         find('[data-active-by-segment-tooltip]').hover
         assert_content(t('workarea.admin.shared.active_field.active_by_segment'))
 
-        find('.select2-selection--multiple', match: :first).click
+        find('.select2-selection--multiple').click
         find('.select2-results__option', text: 'Bar').click
 
-        find_button('save_category').hover # Cause tooltip to close by moving mouse
+        execute_script("$('[data-active-by-segment-tooltip]').trigger('mouseout')")
         sleep(0.4) # Tooltipster's config of delay + animationDuration is 400ms
+
+        assert_content(t('workarea.admin.shared.active_field.by_segment', count: 1, names: 'Bar'))
         click_button 'save_category'
 
         assert_content('Success')
         click_link 'Attributes'
-        assert_content(t('workarea.admin.shared.active_field.by_segment', count: 1))
+        assert_content(t('workarea.admin.shared.active_field.by_segment', count: 1, names: 'Bar'))
         find('[data-active-by-segment-tooltip]').hover
 
         assert_selector('.select2-selection__choice', text: 'Bar')

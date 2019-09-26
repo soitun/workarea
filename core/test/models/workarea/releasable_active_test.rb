@@ -109,40 +109,5 @@ module Workarea
       refute(embedded.changesets.first.original['active'][I18n.locale.to_s])
       assert(embedded.changesets.first.document_path.present?)
     end
-
-    def test_active_by_segment
-      segment_one = create_segment(name: 'One', position: 1)
-      segment_two = create_segment(name: 'Two', position: 2)
-
-      model = Foo.create!(name: 'Foo', active: false)
-      refute(model.active?)
-
-      model.update!(active: true)
-      assert(model.active?)
-
-      model.update!(active_by_segment: { segment_one.id => false })
-      assert(model.active?)
-      Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { assert(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_two.id => false })
-      assert(model.active?)
-      Segment.with_current(segment_one) { assert(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_one.id => true, segment_two.id => false })
-      assert(model.active?)
-      Segment.with_current(segment_one) { assert(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
-      Segment.with_current(segment_one, segment_two) { assert(model.active?) }
-
-      model.update!(active_by_segment: { segment_one.id => false, segment_two.id => true })
-      assert(model.active?)
-      Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { assert(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-    end
   end
 end

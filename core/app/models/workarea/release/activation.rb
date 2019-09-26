@@ -9,12 +9,7 @@ module Workarea
       end
 
       def save_activate_with
-        if activate_with?
-          self.active = false
-          @_active_by_segment = active_by_segment
-          self.active_by_segment = {}
-        end
-
+        self.active = false if activate_with?
         yield
         create_activation_changeset(activate_with) if activate_with?
       end
@@ -27,25 +22,15 @@ module Workarea
         set = changesets.find_or_initialize_by(release_id: release_id)
         set.document_path = document_path
 
-        # active_by_segment will override activeness, so setting that will need
-        # to be part of activation.
-        changes = if @_active_by_segment.blank?
-          {}
-        else
-          { active_by_segment: { I18n.locale.to_s => @_active_by_segment } }
-        end
-
         set.changeset = if Workarea.config.localized_active_fields
-          changes.merge('active' => { I18n.locale.to_s => true })
+          { 'active' => { I18n.locale.to_s => true } }
         else
-          changes.merge('active' => true)
+          { 'active' => true }
         end
-
-        original = @_active_by_segment.blank? ? {} : { 'active_by_segment' => {} }
         set.original = if Workarea.config.localized_active_fields
-          original.merge('active' => { I18n.locale.to_s => false })
+          { 'active' => { I18n.locale.to_s => false } }
         else
-          original.merge('active' => false)
+          { 'active' => false }
         end
 
         set.save!

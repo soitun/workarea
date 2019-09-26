@@ -9,134 +9,78 @@ module Workarea
     end
 
     def test_active_by_segment
-      segment_one = create_segment(name: 'One', position: 1)
-      segment_two = create_segment(name: 'Two', position: 2)
+      segment_one = create_segment(name: 'One')
+      segment_two = create_segment(name: 'Two')
 
-      model = Foo.create!(active: false)
+      model = Foo.create!(active: false, active_segment_ids: [])
       refute(model.active?)
 
-      model.update!(active: true)
+      model.update!(active: true, active_segment_ids: [])
       assert(model.active?)
 
-      model.update!(active_by_segment: { segment_one.id => false })
-      assert(model.active?)
-      Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { assert(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_two.id => false })
-      assert(model.active?)
-      Segment.with_current(segment_one) { assert(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_one.id => true, segment_two.id => false })
+      model.update!(active_segment_ids: [segment_one.id])
       assert(model.active?)
       Segment.with_current(segment_one) { assert(model.active?) }
       Segment.with_current(segment_two) { refute(model.active?) }
       Segment.with_current(segment_one, segment_two) { assert(model.active?) }
 
-      model.update!(active_by_segment: { segment_one.id => false, segment_two.id => true })
+      model.update!(active_segment_ids: [segment_two.id])
       assert(model.active?)
       Segment.with_current(segment_one) { refute(model.active?) }
       Segment.with_current(segment_two) { assert(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active: false)
-      refute(model.active?)
-
-      model.update!(active_by_segment: { segment_one.id => false })
-      refute(model.active?)
-      Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_two.id => false })
-      refute(model.active?)
-      Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
-      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-
-      model.update!(active_by_segment: { segment_one.id => true, segment_two.id => false })
-      refute(model.active?)
-      Segment.with_current(segment_one) { assert(model.active?) }
-      Segment.with_current(segment_two) { refute(model.active?) }
       Segment.with_current(segment_one, segment_two) { assert(model.active?) }
 
-      model.update!(active_by_segment: { segment_one.id => false, segment_two.id => true })
+      model.update!(active_segment_ids: [segment_one.id, segment_two.id])
+      assert(model.active?)
+      Segment.with_current(segment_one) { assert(model.active?) }
+      Segment.with_current(segment_two) { assert(model.active?) }
+      Segment.with_current(segment_one, segment_two) { assert(model.active?) }
+
+      model.update!(active: false, active_segment_ids: [])
+      refute(model.active?)
+
+      model.update!(active_segment_ids: [segment_one.id])
       refute(model.active?)
       Segment.with_current(segment_one) { refute(model.active?) }
-      Segment.with_current(segment_two) { assert(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
       Segment.with_current(segment_one, segment_two) { refute(model.active?) }
-    end
 
-    def test_active_by_segment_typecasting
-      segment = create_segment(name: 'One', position: 1)
+      model.update!(active_segment_ids: [segment_two.id])
+      refute(model.active?)
+      Segment.with_current(segment_one) { refute(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
+      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
 
-      model = Foo.create!
-      model.update!(active_by_segment: { segment.id => true })
-      assert(model.active_by_segment[segment.id.to_s])
-
-      model.update!(active_by_segment: { segment.id => false })
-      refute(model.active_by_segment[segment.id.to_s])
-
-      model.update!(active_by_segment: { segment.id => 'true' })
-      assert(model.active_by_segment[segment.id.to_s])
-
-      model.update!(active_by_segment: { segment.id => 'false' })
-      refute(model.active_by_segment[segment.id.to_s])
-
-      model.update!(active_by_segment: { segment.id => 'true', 'foo' => '' })
-      assert(model.active_by_segment[segment.id.to_s])
-      refute(model.active_by_segment.key?('foo'))
-    end
-
-    def test_assigning_active_by_segment_by_ids
-      model = Foo.create!
-      model.active_segment_ids = %w(foo bar)
-      assert_equal({ 'foo' => true, 'bar' => true }, model.active_by_segment)
-      assert_equal(%w(foo bar), model.active_segment_ids)
-      assert_equal([], model.inactive_segment_ids)
-
-      model.inactive_segment_ids = %w(bar)
-      assert_equal({ 'foo' => true, 'bar' => false }, model.active_by_segment)
-      assert_equal(%w(foo), model.active_segment_ids)
-      assert_equal(%w(bar), model.inactive_segment_ids)
-
-      model.active_segment_ids = []
-      assert_equal({ 'bar' => false }, model.active_by_segment)
-      assert_equal([], model.active_segment_ids)
-      assert_equal(%w(bar), model.inactive_segment_ids)
-
-      model.inactive_segment_ids = []
-      assert_equal({}, model.active_by_segment)
-      assert_equal([], model.active_segment_ids)
-      assert_equal([], model.inactive_segment_ids)
+      model.update!(active_segment_ids: [segment_one.id, segment_two.id])
+      refute(model.active?)
+      Segment.with_current(segment_one) { refute(model.active?) }
+      Segment.with_current(segment_two) { refute(model.active?) }
+      Segment.with_current(segment_one, segment_two) { refute(model.active?) }
     end
 
     def test_segments_and_activate_with
-      segment = create_segment
+      segment_one = create_segment
+      segment_two = create_segment
       release = create_release
 
-      model = Foo.create!(activate_with: release.id, active_by_segment: { segment.id => false })
+      model = Foo.create!(activate_with: release.id, active_segment_ids: [segment_one.id])
       refute(model.reload.active?)
-      assert_equal({}, model.active_by_segment)
 
-      Segment.with_current(segment) do
+      Segment.with_current(segment_one) do
         refute(model.reload.active?)
-        assert_equal({}, model.active_by_segment)
+        release.as_current { assert(model.reload.active?) }
+      end
 
-        release.as_current do
-          refute(model.reload.active?)
-          assert_equal({ segment.id.to_s => false }, model.active_by_segment)
-        end
+      Segment.with_current(segment_two) do
+        refute(model.reload.active?)
+        release.as_current { refute(model.reload.active?) }
       end
 
       release.publish!
       assert(model.reload.active?)
-      assert_equal({ segment.id.to_s => false }, model.active_by_segment)
 
-      Segment.with_current(segment) { refute(model.reload.active?) }
+      Segment.with_current(segment_one) { assert(model.reload.active?) }
+      Segment.with_current(segment_two) { refute(model.reload.active?) }
     end
   end
 end

@@ -152,26 +152,6 @@ module Workarea
         assert_equal(0, a.position)
         assert_equal(1, c.position)
       end
-
-      def test_active_for_segments
-        segment_one = create_segment
-        segment_two = create_segment
-
-        block = @content.blocks.create!(
-          type: 'html',
-          active: false,
-          active_segment_ids: [segment_one.id]
-        )
-
-        refute(block.reload.active?)
-        Segment.with_current(segment_one) { refute(block.reload.active?) }
-        Segment.with_current(segment_two) { refute(block.reload.active?) }
-
-        block.update!(active: true)
-        assert(block.reload.active?)
-        Segment.with_current(segment_one) { assert(block.reload.active?) }
-        Segment.with_current(segment_two) { refute(block.reload.active?) }
-      end
     end
   end
 end
