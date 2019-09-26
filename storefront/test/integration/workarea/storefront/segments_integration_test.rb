@@ -49,65 +49,75 @@ module Workarea
       end
 
       def test_products_active_by_segment
-        segment_one = create_segment
-        segment_two = create_segment
+        segment_one = create_segment(rules: [Segment::Rules::Sessions.new(minimum: 1, maximum: 1)])
+        segment_two = create_segment(rules: [Segment::Rules::Sessions.new(minimum: 2, maximum: 2)])
         product_one = create_product(active: true, active_segment_ids: [segment_two.id])
         product_two = create_product(active: true, active_segment_ids: [segment_one.id])
 
+        cookies[:sessions] = 0
         get storefront.product_path(product_one)
         assert(response.ok?)
 
+        cookies[:sessions] = 0
         get storefront.product_path(product_two)
         assert(response.ok?)
 
+        cookies[:sessions] = 0
         get storefront.search_path(q: '*')
         assert_includes(response.body, product_one.id)
         assert_includes(response.body, product_two.id)
 
-        with_current_segments(segment_one) do
-          assert_raise InvalidDisplay do
-            get storefront.product_path(product_one)
-            assert(response.not_found?)
-          end
-
-          get storefront.product_path(product_two)
-          assert(response.ok?)
-
-          get storefront.search_path(q: '*')
-          refute_includes(response.body, product_one.id)
-          assert_includes(response.body, product_two.id)
-        end
-
-        with_current_segments(segment_two) do
+        assert_raise InvalidDisplay do
+          cookies[:sessions] = 1
           get storefront.product_path(product_one)
-          assert(response.ok?)
-
-          assert_raise InvalidDisplay do
-            get storefront.product_path(product_two)
-            assert(response.not_found?)
-          end
-
-          get storefront.search_path(q: '*')
-          assert_includes(response.body, product_one.id)
-          refute_includes(response.body, product_two.id)
+          assert(response.not_found?)
         end
 
-        with_current_segments(segment_one, segment_two) do
-          get storefront.product_path(product_one)
-          assert(response.ok?)
+        cookies[:sessions] = 1
+        get storefront.product_path(product_two)
+        assert(response.ok?)
 
+        cookies[:sessions] = 1
+        get storefront.search_path(q: '*')
+        refute_includes(response.body, product_one.id)
+        assert_includes(response.body, product_two.id)
+
+        cookies[:sessions] = 2
+        get storefront.product_path(product_one)
+        assert(response.ok?)
+
+        assert_raise InvalidDisplay do
+          cookies[:sessions] = 2
           get storefront.product_path(product_two)
-          assert(response.ok?)
-
-          get storefront.search_path(q: '*')
-          assert_includes(response.body, product_one.id)
-          assert_includes(response.body, product_two.id)
+          assert(response.not_found?)
         end
+
+        cookies[:sessions] = 2
+        get storefront.search_path(q: '*')
+        assert_includes(response.body, product_one.id)
+        refute_includes(response.body, product_two.id)
+
+        segment_one.rules.first.update!(minimum: 1, maximum: nil)
+        segment_two.rules.first.update!(minimum: 1, maximum: nil)
+
+        cookies[:sessions] = 1
+        get storefront.product_path(product_one)
+        assert(response.ok?)
+
+        cookies[:sessions] = 1
+        get storefront.product_path(product_two)
+        assert(response.ok?)
+
+        cookies[:sessions] = 1
+        get storefront.search_path(q: '*')
+        assert_includes(response.body, product_one.id)
+        assert_includes(response.body, product_two.id)
       end
 
       def test_content_active_by_segment
-        segment_one = create_segment
-        segment_two = create_segment
+        segment_one = create_segment(rules: [Segment::Rules::Sessions.new(minimum: 1, maximum: 1)])
+        segment_two = create_segment(rules: [Segment::Rules::Sessions.new(minimum: 2, maximum: 2)])
+
 
         content = Content.for('home_page')
         content.blocks.create!(
@@ -121,23 +131,22 @@ module Workarea
           active_segment_ids: [segment_two.id]
         )
 
-        with_current_segments(segment_one) do
-          get storefront.root_path
-          assert_includes(response.body, '<p>Foo</p>')
-          refute_includes(response.body, '<p>Bar</p>')
-        end
+        cookies[:sessions] = 1
+        get storefront.root_path
+        assert_includes(response.body, '<p>Foo</p>')
+        refute_includes(response.body, '<p>Bar</p>')
 
-        with_current_segments(segment_two) do
-          get storefront.root_path
-          refute_includes(response.body, '<p>Foo</p>')
-          assert_includes(response.body, '<p>Bar</p>')
-        end
+        cookies[:sessions] = 2
+        get storefront.root_path
+        refute_includes(response.body, '<p>Foo</p>')
+        assert_includes(response.body, '<p>Bar</p>')
 
-        with_current_segments(segment_one, segment_two) do
-          get storefront.root_path
-          assert_includes(response.body, '<p>Foo</p>')
-          assert_includes(response.body, '<p>Bar</p>')
-        end
+        segment_one.rules.first.update!(minimum: 1, maximum: nil)
+        segment_two.rules.first.update!(minimum: 1, maximum: nil)
+        cookies[:sessions] = 1
+        get storefront.root_path
+        assert_includes(response.body, '<p>Foo</p>')
+        assert_includes(response.body, '<p>Bar</p>')
       end
 
       def test_admins_ignore_segments
@@ -159,16 +168,6 @@ module Workarea
 
         get storefront.root_path
         assert_includes(response.body, '<p>Foo</p>')
-      end
-
-      private
-
-      def with_current_segments(*segments)
-        Segment.stubs(:current).returns(Segment::Collection.new(*segments))
-        yield
-
-      ensure
-        Segment.unstub(:current)
       end
     end
   end

@@ -8,12 +8,6 @@ module Workarea
         self.default_rules = [Rules::Orders.new(maximum: 0)]
       end
 
-      def test_creation_positions
-        LifeCycle.create!.each_with_index do |klass, i|
-          assert_equal(i, klass.instance.position)
-        end
-      end
-
       def test_cannot_destroy
         life_cycle = FooSegment.instance # create it
 

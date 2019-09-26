@@ -29,7 +29,7 @@ module Workarea
       end
 
       def to_block
-        content.blocks.build(attributes.except('content_id'))
+        Mongoid::Factory.from_db(Content::Block, as_document.except('content_id'))
       end
     end
   end
