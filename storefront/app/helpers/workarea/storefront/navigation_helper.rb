@@ -81,6 +81,7 @@ module Workarea
         path = storefront_path_for(taxon)
 
         return if path.blank?
+        return path if path.start_with?('http')
 
         protocol = Rails.application.config.force_ssl ? 'https' : 'http'
         "#{protocol}://#{Workarea.config.host}/#{path.sub(/^\//, '')}"

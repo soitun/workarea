@@ -12,6 +12,7 @@ module Workarea
 
         taxon = create_taxon(url: 'http://example.com')
         assert_equal('http://example.com', storefront_path_for(taxon))
+        assert_equal('http://example.com', storefront_url_for(taxon))
 
         taxon = Navigation::SearchResults.new(q: 'foo').taxon
         assert_equal(search_path(q: 'foo'), storefront_path_for(taxon))
